@@ -34,11 +34,19 @@ while True:
         "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
     i += 1
     time.sleep(scroll_pause_time)
-    # update scroll height each time after scrolled, as the scroll height can change after we scrolled the page
+    # update scroll height each time after scrolled, as the scroll height can change after we scrolled 
+    # the page
+    
+    
     scroll_height = driver.execute_script("return document.body.scrollHeight;")
     # Break the loop when the height we need to scroll to is larger than the total scroll height
     if (screen_height) * i > scroll_height:
-        break
+      see_more = driver.find_element(
+          By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
+      if (see_more.text == 'See more jobs'):
+          see_more.click()
+          continue
+      break
 
 
 links = []
@@ -50,35 +58,14 @@ try:
     for link in jobs_list:
         all_links = link.find_elements(By.TAG_NAME,'a')
         for a in all_links:
-          print(a.get_attribute('href'))
+          # print(a.get_attribute('href'))
+          if str(a.get_attribute('href')).startswith("https://bd.linkedin.com/jobs/view/") and a.get_attribute('href') not in links:
+              links.append(a.get_attribute('href'))
           
 except:
     pass
   
-# print(len(links))
-# try:
-#     for page in range(2, 14):
-#         time.sleep(2)
-#         jobs_list = driver.find_elements(
-#             By.XPATH, "(//div[@class='base-card relative w-full hover:no-underline focus:no-underline base-card--link base-search-card base-search-card--link job-search-card'])")
-
-#         for job in jobs_list:
-#             all_links = job.find_elements(By.TAG_NAME,'a')
-#             for a in all_links:
-#                 if str(a.get_attribute('href')).startswith("https://www.linkedin.com/jobs/view") and a.get_attribute('href') not in links:
-#                     links.append(a.get_attribute('href'))
-#                 else:
-#                     pass
-#             # scroll down for each job element
-#             driver.execute_script("arguments[0].scrollIntoView();", job)
-
-#         print(f'Collecting the links in the page: {page-1}')
-#         # go to next page:
-#         driver.find_element_by_xpath(
-#             f"//button[@aria-label='Page {page}']").click()
-#         time.sleep(3)
-# except:
-#     pass
+print(len(links))
 
 
 # mail = 'devilshuvo12@gmail.com'
@@ -96,5 +83,5 @@ except:
 # driver.get('http://stackoverflow.com/')
 
 
-time.sleep(100)
+time.sleep(10)
 driver.close()
