@@ -28,25 +28,25 @@ screen_height = driver.execute_script(
     "return window.screen.height;")   # get the screen height of the web
 i = 1
 
-while True:
-    # scroll one screen height each time
-    driver.execute_script(
-        "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-    i += 1
-    time.sleep(scroll_pause_time)
-    # update scroll height each time after scrolled, as the scroll height can change after we scrolled 
-    # the page
-    
-    
-    scroll_height = driver.execute_script("return document.body.scrollHeight;")
-    # Break the loop when the height we need to scroll to is larger than the total scroll height
-    if (screen_height) * i > scroll_height:
-      see_more = driver.find_element(
-          By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
-      if (see_more.text == 'See more jobs'):
-          see_more.click()
-          continue
-      break
+# while True:
+#     # scroll one screen height each time
+#     driver.execute_script(
+#         "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+#     i += 1
+#     time.sleep(scroll_pause_time)
+#     # update scroll height each time after scrolled, as the scroll height can change after we scrolled
+#     # the page
+
+
+#     scroll_height = driver.execute_script("return document.body.scrollHeight;")
+#     # Break the loop when the height we need to scroll to is larger than the total scroll height
+#     if (screen_height) * i > scroll_height:
+#       see_more = driver.find_element(
+#           By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
+#       if (see_more.text == 'See more jobs'):
+#           see_more.click()
+#           continue
+#       break
 
 
 links = []
@@ -56,16 +56,29 @@ try:
     jobs_list = driver.find_elements(
         By.XPATH, "(//div[@class='base-card relative w-full hover:no-underline focus:no-underline base-card--link base-search-card base-search-card--link job-search-card'])")
     for link in jobs_list:
-        all_links = link.find_elements(By.TAG_NAME,'a')
+        all_links = link.find_elements(By.TAG_NAME, 'a')
         for a in all_links:
-          # print(a.get_attribute('href'))
-          if str(a.get_attribute('href')).startswith("https://bd.linkedin.com/jobs/view/") and a.get_attribute('href') not in links:
-              links.append(a.get_attribute('href'))
-          
+            # print(a.get_attribute('href'))
+            if str(a.get_attribute('href')).startswith("https://bd.linkedin.com/jobs/view/") and a.get_attribute('href') not in links:
+                links.append(a.get_attribute('href'))
+
 except:
     pass
-  
+
 print(len(links))
+
+for i in range(4):
+    try:
+        driver.get(links[i])
+        i = i+1
+        time.sleep(5)
+        # Click See more.
+        driver.find_element(
+            By.XPATH, "//button[@data-tracking-control-name='public_jobs_show-more-html-btn']").click()
+        time.sleep(4)
+    except:
+        pass
+    
 
 
 # mail = 'devilshuvo12@gmail.com'
@@ -83,5 +96,5 @@ print(len(links))
 # driver.get('http://stackoverflow.com/')
 
 
-time.sleep(10)
+time.sleep(1000)
 driver.close()
