@@ -33,25 +33,25 @@ screen_height = driver.execute_script(
     "return window.screen.height;")   # get the screen height of the web
 i = 1
 
-# while True:
-#     # scroll one screen height each time
-#     driver.execute_script(
-#         "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-#     i += 1
-#     time.sleep(scroll_pause_time)
-#     # update scroll height each time after scrolled, as the scroll height can change after we scrolled
-#     # the page
+while True:
+    # scroll one screen height each time
+    driver.execute_script(
+        "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+    i += 1
+    time.sleep(scroll_pause_time)
+    # update scroll height each time after scrolled, as the scroll height can change after we scrolled
+    # the page
 
 
-#     scroll_height = driver.execute_script("return document.body.scrollHeight;")
-#     # Break the loop when the height we need to scroll to is larger than the total scroll height
-#     if (screen_height) * i > scroll_height:
-#       see_more = driver.find_element(
-#           By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
-#       if (see_more.text == 'See more jobs'):
-#           see_more.click()
-#           continue
-#       break
+    scroll_height = driver.execute_script("return document.body.scrollHeight;")
+    # Break the loop when the height we need to scroll to is larger than the total scroll height
+    if (screen_height) * i > scroll_height:
+      see_more = driver.find_element(
+          By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
+      if (see_more.text == 'See more jobs'):
+          see_more.click()
+          continue
+      break
 
 
 links = []
@@ -80,7 +80,7 @@ job_dates = []
 job_description = []
 apply_links = []
 i = 0
-for i in range(4):
+for i in range(len(links)):
     try:
         driver.get(links[i])
 
@@ -107,27 +107,28 @@ for i in range(4):
             job_dates.append('None')
         apply_links.append(links[i])
         i = i+1
-        # job_description
-        # type = driver.find_elements(
-        #     By.XPATH, "//span[@class='description__job-criteria-text description__job-criteria-text--criteria']")
-        # print(len(type))
+        job_description.append(driver.find_element(
+            By.XPATH, "//div[@class='show-more-less-html__markup']").text)
+
+        tyep_job = driver.find_elements(
+            By.XPATH, "//span[@class='description__job-criteria-text description__job-criteria-text--criteria']")
+        job_types.append(tyep_job[0].text + ' ' + tyep_job[1].text)
     except:
         pass
     time.sleep(2)
 
-    # level = driver.find_element(
-    #     By.XPATH, "//h3[@class,'description__job-criteria-subheader']").text
+    
     # job_type.append(type + level)
 
 
-print(job_titles, company_names, job_locations, job_dates, apply_links)
+# print(job_titles, job_types, company_names, job_locations, job_dates, apply_links, job_description)
 
 # Combine the lists using the zip function
-job_data = list(zip(job_titles, company_names, job_locations, job_dates, apply_links))
-print(job_data)
+job_data = list(zip(job_titles,job_types, company_names, job_locations, job_dates, apply_links, job_description))
+
 # Convert the list of dictionaries to a pandas DataFrame
 df = pd.DataFrame(job_data,
-                columns=['job_title', 'company_name', 'job_location', 'job_date', 'apply_link'])
+                columns=['job_title','job_types', 'company_name', 'job_location', 'job_date', 'apply_link', 'job_description'])
 
 json_data = df.to_json('jobs.json', orient='records')
 
@@ -135,19 +136,19 @@ json_data = df.to_json('jobs.json', orient='records')
 # print(json_data)
 
 
-# mail = 'devilshuvo12@gmail.com'
-# password = 'devil91?'
+# # mail = 'devilshuvo12@gmail.com'
+# # password = 'devil91?'
 
-# driver.find_element(By.XPATH, "(//input[@type='text'])").send_keys(mail)
+# # driver.find_element(By.XPATH, "(//input[@type='text'])").send_keys(mail)
 
-# driver.find_element(
-#     By.XPATH, "(//input[@type='password'])").send_keys(password)
-# time.sleep(2)
+# # driver.find_element(
+# #     By.XPATH, "(//input[@type='password'])").send_keys(password)
+# # time.sleep(2)
 
-# driver.find_element(By.XPATH,"//button[normalize-space()='Sign in']").click()
+# # driver.find_element(By.XPATH,"//button[normalize-space()='Sign in']").click()
 
-# driver.find_element(By.TAG_NAME,'body').send_keys(Keys.COMMAND + 't')
-# driver.get('http://stackoverflow.com/')
+# # driver.find_element(By.TAG_NAME,'body').send_keys(Keys.COMMAND + 't')
+# # driver.get('http://stackoverflow.com/')
 
 
 time.sleep(1000)
