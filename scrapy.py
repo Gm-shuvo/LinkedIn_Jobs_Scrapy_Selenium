@@ -1,10 +1,13 @@
 import time
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
+
 
 options = Options()
 # options.add_argument('--headless')
@@ -67,19 +70,54 @@ except:
 
 print(len(links))
 
+job_title = []
+job_type = []
+job_location = []
+company_name = []
+job_date = []
+job_description = []
+apply_link = []
+
 for i in range(4):
     try:
         driver.get(links[i])
-        i = i+1
-        time.sleep(5)
+
+        time.sleep(3)
         # Click See more.
         driver.find_element(
             By.XPATH, "//button[@data-tracking-control-name='public_jobs_show-more-html-btn']").click()
-        time.sleep(4)
+        time.sleep(3)
     except:
         pass
-    
+    try:
+        job_title.append(driver.find_element(By.XPATH, "//h1").text)
+        company_name.append(driver.find_element(
+            By.XPATH, "//a[@class='topcard__org-name-link topcard__flavor--black-link']").text)
+        job_location.append(driver.find_element(
+            By.XPATH, "//span[@class='topcard__flavor topcard__flavor--bullet']").text)
+        try:
+            job_date.append(driver.find_element(
+                By.XPATH, "//span[@class='posted-time-ago__text topcard__flavor--metadata']").text)
+        except NoSuchElementException:
+                job_date.append(driver.find_element(
+                    By.XPATH, "//span[@class='posted-time-ago__text posted-time-ago__text--new topcard__flavor--metadata']").text)
+        except:
+            job_date.append('None')
+        apply_link.append(links[i])
+        i = i+1
+        # job_description
+        type = driver.find_elements(
+            By.XPATH, "//span[@class='description__job-criteria-text description__job-criteria-text--criteria']")
+        print(len(type))
+    except:
+        pass
 
+    # level = driver.find_element(
+    #     By.XPATH, "//h3[@class,'description__job-criteria-subheader']").text
+    # job_type.append(type + level)
+
+
+print(job_title, company_name, job_location, job_date, apply_link, job_type)
 
 # mail = 'devilshuvo12@gmail.com'
 # password = 'devil91?'
