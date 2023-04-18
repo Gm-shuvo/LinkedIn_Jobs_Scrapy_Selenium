@@ -1,4 +1,6 @@
+import pandas as pd
 import time
+import json
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -70,54 +72,68 @@ except:
 
 print(len(links))
 
-job_title = []
-job_type = []
-job_location = []
-company_name = []
-job_date = []
+job_titles = []
+job_types = []
+job_locations = []
+company_names = []
+job_dates = []
 job_description = []
-apply_link = []
-
+apply_links = []
+i = 0
 for i in range(4):
     try:
         driver.get(links[i])
 
-        time.sleep(3)
+        time.sleep(2)
         # Click See more.
         driver.find_element(
             By.XPATH, "//button[@data-tracking-control-name='public_jobs_show-more-html-btn']").click()
-        time.sleep(3)
+        time.sleep(2)
     except:
         pass
     try:
-        job_title.append(driver.find_element(By.XPATH, "//h1").text)
-        company_name.append(driver.find_element(
+        job_titles.append(driver.find_element(By.XPATH, "//h1").text)
+        company_names.append(driver.find_element(
             By.XPATH, "//a[@class='topcard__org-name-link topcard__flavor--black-link']").text)
-        job_location.append(driver.find_element(
+        job_locations.append(driver.find_element(
             By.XPATH, "//span[@class='topcard__flavor topcard__flavor--bullet']").text)
         try:
-            job_date.append(driver.find_element(
+            job_dates.append(driver.find_element(
                 By.XPATH, "//span[@class='posted-time-ago__text topcard__flavor--metadata']").text)
         except NoSuchElementException:
-                job_date.append(driver.find_element(
-                    By.XPATH, "//span[@class='posted-time-ago__text posted-time-ago__text--new topcard__flavor--metadata']").text)
+            job_dates.append(driver.find_element(
+                By.XPATH, "//span[@class='posted-time-ago__text posted-time-ago__text--new topcard__flavor--metadata']").text)
         except:
-            job_date.append('None')
-        apply_link.append(links[i])
+            job_dates.append('None')
+        apply_links.append(links[i])
         i = i+1
         # job_description
-        type = driver.find_elements(
-            By.XPATH, "//span[@class='description__job-criteria-text description__job-criteria-text--criteria']")
-        print(len(type))
+        # type = driver.find_elements(
+        #     By.XPATH, "//span[@class='description__job-criteria-text description__job-criteria-text--criteria']")
+        # print(len(type))
     except:
         pass
+    time.sleep(2)
 
     # level = driver.find_element(
     #     By.XPATH, "//h3[@class,'description__job-criteria-subheader']").text
     # job_type.append(type + level)
 
 
-print(job_title, company_name, job_location, job_date, apply_link, job_type)
+print(job_titles, company_names, job_locations, job_dates, apply_links)
+
+# Combine the lists using the zip function
+job_data = list(zip(job_titles, company_names, job_locations, job_dates, apply_links))
+print(job_data)
+# Convert the list of dictionaries to a pandas DataFrame
+df = pd.DataFrame(job_data,
+                columns=['job_title', 'company_name', 'job_location', 'job_date', 'apply_link'])
+
+json_data = df.to_json('jobs.json', orient='records')
+
+# Print the JSON string
+# print(json_data)
+
 
 # mail = 'devilshuvo12@gmail.com'
 # password = 'devil91?'
