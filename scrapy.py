@@ -83,7 +83,7 @@ job_dates = []
 job_description = []
 apply_links = []
 i = 0
-for i in range(8):
+for i in range(len(links)):
     try:
         driver.get(links[i])
 
