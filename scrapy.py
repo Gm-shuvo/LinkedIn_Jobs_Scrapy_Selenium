@@ -1,6 +1,9 @@
+import os
 import pandas as pd
 import time
 import json
+import pymongo
+from dotenv import load_dotenv
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -33,25 +36,25 @@ screen_height = driver.execute_script(
     "return window.screen.height;")   # get the screen height of the web
 i = 1
 
-while True:
-    # scroll one screen height each time
-    driver.execute_script(
-        "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-    i += 1
-    time.sleep(scroll_pause_time)
-    # update scroll height each time after scrolled, as the scroll height can change after we scrolled
-    # the page
+# while True:
+#     # scroll one screen height each time
+#     driver.execute_script(
+#         "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+#     i += 1
+#     time.sleep(scroll_pause_time)
+#     # update scroll height each time after scrolled, as the scroll height can change after we scrolled
+#     # the page
 
 
-    scroll_height = driver.execute_script("return document.body.scrollHeight;")
-    # Break the loop when the height we need to scroll to is larger than the total scroll height
-    if (screen_height) * i > scroll_height:
-      see_more = driver.find_element(
-          By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
-      if (see_more.text == 'See more jobs'):
-          see_more.click()
-          continue
-      break
+#     scroll_height = driver.execute_script("return document.body.scrollHeight;")
+#     # Break the loop when the height we need to scroll to is larger than the total scroll height
+#     if (screen_height) * i > scroll_height:
+#       see_more = driver.find_element(
+#           By.XPATH, "//button[@data-tracking-control-name='infinite-scroller_show-more']")
+#       if (see_more.text == 'See more jobs'):
+#           see_more.click()
+#           continue
+#       break
 
 
 links = []
@@ -80,7 +83,7 @@ job_dates = []
 job_description = []
 apply_links = []
 i = 0
-for i in range(len(links)):
+for i in range(8):
     try:
         driver.get(links[i])
 
@@ -117,20 +120,62 @@ for i in range(len(links)):
         pass
     time.sleep(2)
 
-    
-    # job_type.append(type + level)
-
-
-# print(job_titles, job_types, company_names, job_locations, job_dates, apply_links, job_description)
+print(job_titles, job_types, company_names, job_locations,
+      job_dates, apply_links, job_description)
 
 # Combine the lists using the zip function
-job_data = list(zip(job_titles,job_types, company_names, job_locations, job_dates, apply_links, job_description))
+job_data = list(zip(job_titles, job_types, company_names,
+                job_locations, job_dates, apply_links, job_description))
 
 # Convert the list of dictionaries to a pandas DataFrame
 df = pd.DataFrame(job_data,
-                columns=['job_title','job_types', 'company_name', 'job_location', 'job_date', 'apply_link', 'job_description'])
+                  columns=['job_title', 'job_types', 'company_name', 'job_location', 'job_date', 'apply_link', 'job_description'])
 
-json_data = df.to_json('jobs.json', orient='records')
+# convert json
+json_data = df.to_json(orient='records')
+# json to dict
+data = json.loads(json_data)
+
+# load into mongodb
+load_dotenv()
+MONGO_URL = os.getenv('MONGO_URL')
+# print(MONGO_URL)
+
+dbname = 'jobScraper'
+collectionname = 'linkedInJobs'
+
+# Set up a connection to MongoDB Atlas
+try:
+    client = pymongo.MongoClient(MONGO_URL)
+    print("Connected successfully to MongoDB Atlas")
+except pymongo.errors.ConnectionFailure as e:
+    print("Could not connect to MongoDB Atlas: %s" % e)
+
+db = client[dbname]
+collection = db[collectionname]
+
+# # insert data into mongodb
+for record in data:
+    # Define the filter and update documents
+    filter = {'job_title': record['job_title'],
+            'company_name': record['company_name'],
+            'apply_links': record['apply_link'],
+            'job_description': record['job_description'],
+            'job_dates': record['job_date'],
+            'job_location': record['job_location'],
+            'job_types': record['job_types'],
+            }
+    collection.create_index([('job_title', pymongo.ASCENDING)], unique=True)
+    # update = {'$set': record}
+
+    # Try to update the document if it exists, otherwise insert it as a new document
+    try:
+        collection.insert_one(record)
+        print("Data inserted successfully.")
+    except pymongo.errors.DuplicateKeyError:
+        print("Data already exists in the collection. Skipping insertion.")
+    except Exception as e:
+        print("Error inserting data:", e)
 
 # Print the JSON string
 # print(json_data)
